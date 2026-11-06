@@ -6,18 +6,23 @@ Run:
 
 Input : assets/source/walther_ppk.glb (falls back to any .glb/.gltf/.dae in assets/source/).
 Output (mod root workshop/WaltherPPKS/Contents/mods/WaltherPPKS/42/media):
-  models_X/weapons/PPKS.fbx      reduced mesh, PZ weapon layout
-  textures/weapons/PPKS.png      256x256 diffuse (base colour x ambient occlusion from the source textures)
-  textures/Item_PPKS.png         32x32 inventory icon (rendered)
+  models_X/weapons/PPKS.fbx             reduced gun mesh, PZ weapon layout
+  models_X/weapons/PPKS_Suppressor.fbx  reduced suppressor mesh (shares the gun texture)
+  textures/weapons/PPKS.png             256x256 diffuse (base colour x ambient occlusion from the source textures)
+  textures/Item_PPKS.png                32x32 gun inventory icon (rendered)
+  textures/Item_PPKSSuppressor.png      32x32 suppressor inventory icon (rendered)
 
 What it does to the source model:
-  * removes the suppressor (everything in front of the slide, --cut-y in source units),
+  * splits off the suppressor (everything in front of the slide, --cut-y in source units) into its own mesh,
   * reduces polygons to about --target-verts game vertices (UV seams counted),
   * scales it to real PPK proportions relative to the vanilla M9 (PZ pistols are ~0.69 of real size),
   * places it in the PZ firearm layout used by vanilla/Marz pistols: X = width, +Y = muzzle, +Z = up,
     origin at the back of the frame above the grip, and writes the FBX the same way Blender-made
     PZ weapon FBX files are written (Y-up file, unit scale 1, identity node transforms).
-It prints the muzzle attachment offset to use in the `model PPKS` script block.
+The suppressor gets exactly the gun's scale/offset, so it lines up with the gun's muzzle as in the
+source, then is moved so its origin is the rear centre of its bore (where it meets the muzzle).
+It prints the muzzle and suppressor attachment offsets for the `model PPKS` / `model PPKSSuppressor`
+script blocks.
 """
 import argparse
 import glob
@@ -35,6 +40,8 @@ MEDIA = os.path.join(ROOT, "workshop", "WaltherPPKS", "Contents", "mods", "Walth
 OUT_FBX = os.path.join(MEDIA, "models_X", "weapons", "PPKS.fbx")
 OUT_TEX = os.path.join(MEDIA, "textures", "weapons", "PPKS.png")
 OUT_ICON = os.path.join(MEDIA, "textures", "Item_PPKS.png")
+OUT_SUP_FBX = os.path.join(MEDIA, "models_X", "weapons", "PPKS_Suppressor.fbx")
+OUT_SUP_ICON = os.path.join(MEDIA, "textures", "Item_PPKSSuppressor.png")
 
 # Vanilla/Marz M9-class pistol in PZ units: rear of frame y=-0.0075, muzzle y~0.142, slide top z~0.039.
 M9_GAME_LENGTH = 0.1494
@@ -52,6 +59,7 @@ def parse_args():
     ap.add_argument("--cut-y", type=float, default=0.395,
                     help="source-space Y (after applying transforms) in front of which geometry is removed (suppressor)")
     ap.add_argument("--target-verts", type=int, default=1000)
+    ap.add_argument("--sup-target-verts", type=int, default=400)
     ap.add_argument("--tex-size", type=int, default=256)
     return ap.parse_args(argv)
 
@@ -122,14 +130,30 @@ def base_color_and_ao(obj):
     return base, channel_source(mat, "Occlusion"), channel_source(mat, "Metallic")
 
 
-def strip_suppressor(obj, cut_y):
+def _cut(obj, cut_y, keep_front):
     bm = bmesh.new()
     bm.from_mesh(obj.data)
     geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
-    bmesh.ops.bisect_plane(bm, geom=geom, dist=1e-6, plane_co=(0, cut_y, 0), plane_no=(0, 1, 0), clear_outer=True)
+    bmesh.ops.bisect_plane(bm, geom=geom, dist=1e-6, plane_co=(0, cut_y, 0), plane_no=(0, 1, 0),
+                           clear_outer=not keep_front, clear_inner=keep_front)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
     bm.to_mesh(obj.data)
     bm.free()
+
+
+def strip_suppressor(obj, cut_y):
+    """Keep the gun (everything behind cut_y)."""
+    _cut(obj, cut_y, keep_front=False)
+
+
+def split_suppressor(obj, cut_y):
+    """New object holding only the suppressor (everything in front of cut_y), same material/UVs."""
+    sup = obj.copy()
+    sup.data = obj.data.copy()
+    sup.name = sup.data.name = "PPKS_Suppressor"
+    bpy.context.scene.collection.objects.link(sup)
+    _cut(sup, cut_y, keep_front=True)
+    return sup
 
 
 def game_vertex_count(me):
@@ -142,7 +166,7 @@ def game_vertex_count(me):
     return len(keys)
 
 
-def decimate(obj, target):
+def decimate(obj, target, name="PPKS"):
     original = obj.data.copy()
     lo, hi = 0.01, 1.0
     best = None
@@ -162,8 +186,8 @@ def decimate(obj, target):
         else:
             hi = ratio
     obj.data = best[1]
-    obj.data.name = "PPKS"
-    print("DECIMATE ratio %.3f -> %d game verts, %d tris" % (best[0], best[2], len(obj.data.polygons)))
+    obj.data.name = name
+    print("DECIMATE", name, "ratio %.3f -> %d game verts, %d tris" % (best[0], best[2], len(obj.data.polygons)))
 
 
 def normalize(obj):
@@ -173,7 +197,8 @@ def normalize(obj):
     mn, mx = co.min(0), co.max(0)
     s = TARGET_LENGTH / (mx[1] - mn[1])
     off = Vector((-(mn[0] + mx[0]) / 2 * s, REAR_Y - mn[1] * s, TOP_Z - mx[2] * s))
-    me.transform(Matrix.Translation(off) @ Matrix.Scale(s, 4))
+    xf = Matrix.Translation(off) @ Matrix.Scale(s, 4)
+    me.transform(xf)
     me.update()
     co = np.array([v.co[:] for v in me.vertices])
     # bore height: mid of the barrel verts at the very front
@@ -183,7 +208,28 @@ def normalize(obj):
     print("LAYOUT min", np.round(co.min(0), 4), "max", np.round(co.max(0), 4), "scale %.5f" % s)
     print("ATTACH muzzle offset = 0.0 %.4f %.4f  (script z = -mesh z)" % (co[:, 1].max(), -bore_z))
     print("ATTACH world offset y ~ %.4f (lengthwise centre)" % ((co[:, 1].min() + co[:, 1].max()) / 2))
-    return co
+    return xf
+
+
+def place_suppressor(sup, xf):
+    """Apply the gun's transform, then move the origin to the rear centre of the suppressor's bore.
+    Prints the gun-model attachment offset (script coords) that puts it back where it was."""
+    me = sup.data
+    me.transform(xf)
+    co = np.array([v.co[:] for v in me.vertices])
+    mn, mx = co.min(0), co.max(0)
+    rear = Vector(((mn[0] + mx[0]) / 2, mn[1], (mn[2] + mx[2]) / 2))
+    me.transform(Matrix.Translation(-rear))
+    me.update()
+    co = np.array([v.co[:] for v in me.vertices])
+    length = co[:, 1].max()
+    radius = max(-co[:, 0].min(), co[:, 0].max(), -co[:, 2].min(), co[:, 2].max())
+    x = rear.x if abs(rear.x) >= 0.0005 else 0.0
+    print("SUPPRESSOR length %.4f radius %.4f" % (length, radius))
+    print("ATTACH PPKS suppressor offset = %.4f %.4f %.4f  (script z = -mesh z)" % (x, rear.y, -rear.z))
+    print("ATTACH PPKSSuppressor suppressor offset = 0.0 0.0 0.0 (rear centre of the bore)")
+    print("ATTACH PPKSSuppressor_Ground world offset y ~ %.4f (lengthwise centre)" % (length / 2))
+    return rear
 
 
 def _channel(src, w, h):
@@ -232,18 +278,19 @@ def set_material(obj, img):
     obj.data.materials.append(mat)
 
 
-def export_fbx(obj, path):
+def export_fbx(obj, path, name="PPKS"):
     # PZ reads raw FBX vertex coordinates. Blender's FBX writer converts Z-up -> Y-up (x, y, z) -> (x, z, -y)
     # and FBX_SCALE_NONE writes centimetres; so pre-transform Blender coords = 0.01 * (x, -z, y).
     me = obj.data.copy()
     to_blender = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1))) @ Matrix.Scale(0.01, 4)
     me.transform(to_blender)
-    exp = bpy.data.objects.new("PPKS_export", me)
+    exp = bpy.data.objects.new(name + "_export", me)
     bpy.context.scene.collection.objects.link(exp)
     for o in bpy.context.scene.objects:
         o.select_set(o == exp)
-    exp.name = "PPKS"
-    obj.name = "PPKS_work"
+    work_name = obj.name
+    obj.name = name + "_work"
+    exp.name = name
     os.makedirs(os.path.dirname(path), exist_ok=True)
     bpy.ops.export_scene.fbx(filepath=path, use_selection=True, object_types={"MESH"},
                              axis_forward="-Z", axis_up="Y", apply_scale_options="FBX_SCALE_NONE",
@@ -251,11 +298,17 @@ def export_fbx(obj, path):
                              use_mesh_modifiers=False, add_leaf_bones=False, bake_anim=False,
                              path_mode="STRIP", embed_textures=False)
     bpy.data.objects.remove(exp)
+    obj.name = work_name
     print("wrote", path)
 
 
 def render_icon(obj, path, size=32):
     sc = bpy.context.scene
+    for o in [o for o in sc.objects if o.type in ("CAMERA", "LIGHT")]:
+        bpy.data.objects.remove(o)
+    for o in sc.objects:   # render only this object
+        if o.type == "MESH":
+            o.hide_render = o != obj
     sc.render.engine = "BLENDER_EEVEE" if "BLENDER_EEVEE" in [e.identifier for e in bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items] else "BLENDER_EEVEE_NEXT"
     sc.render.film_transparent = True
     sc.render.resolution_x = sc.render.resolution_y = 256
@@ -314,14 +367,21 @@ def main():
     base, ao, metal = base_color_and_ao(obj)
     print("SOURCE verts", len(obj.data.vertices), "base", base.name, tuple(base.size),
           "ao", ao and ao[0].name, "metal", metal and metal[0].name)
+    sup = split_suppressor(obj, a.cut_y)
     strip_suppressor(obj, a.cut_y)
     decimate(obj, a.target_verts)
-    normalize(obj)
+    xf = normalize(obj)
+    decimate(sup, a.sup_target_verts, name="PPKS_Suppressor")
+    place_suppressor(sup, xf)
     tex = bake_texture(base, ao, metal, a.tex_size, OUT_TEX)
     set_material(obj, tex)
+    sup.data.materials.clear()
+    sup.data.materials.append(obj.data.materials[0])
     export_fbx(obj, OUT_FBX)
+    export_fbx(sup, OUT_SUP_FBX, name="PPKS_Suppressor")
     obj.name = "PPKS"
     render_icon(obj, OUT_ICON)
+    render_icon(sup, OUT_SUP_ICON)
 
 
 main()

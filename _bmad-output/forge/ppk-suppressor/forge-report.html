@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forge Report: PPK/S Suppressor</title>
+<style>
+:root{--bg:#f6f1e7;--paper:#fffdf8;--ink:#2a2420;--muted:#6f655c;--line:#e2d8c8;--seal:#1f3a5f;--seal2:#3a6aa3;--ok:#2f6b3a;--warn:#9a6a00;--kill:#8a2b2b}
+@media (prefers-color-scheme:dark){:root{--bg:#171412;--paper:#211d1a;--ink:#eee6db;--muted:#a99d90;--line:#3a332d;--seal:#2d5488;--seal2:#6e9fd6;--ok:#7cc48a;--warn:#e0b24a;--kill:#e07a7a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Georgia,"Times New Roman",serif}
+main{max-width:860px;margin:0 auto;padding:32px 16px 64px}
+.paper{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:32px 28px}
+header{display:flex;gap:24px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+header .t{flex:1 1 320px}
+h1{margin:0 0 4px;font-size:30px}
+.sub{color:var(--muted);margin:0}
+h2{font-size:19px;margin:28px 0 10px}
+ul{margin:0;padding-left:20px}
+li{margin:6px 0}
+.tag{font:600 11px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.08em;padding:3px 6px;border-radius:4px;margin-right:6px;vertical-align:2px;border:1px solid currentColor}
+.lock{color:var(--ok)}.kill{color:var(--kill)}.risk{color:var(--warn)}
+table{border-collapse:collapse;width:100%;font-size:15px;margin-top:6px}
+td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+th{color:var(--muted);font-weight:600}
+.cast{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.p{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.p b{display:block;font-size:15px}.p span{color:var(--muted)}
+footer{margin-top:28px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<main><div class="paper">
+<header>
+<svg width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Wax seal: Hardened">
+  <path d="M75 6c9 0 12 7 20 9s15-3 21 4 2 14 6 21 11 9 11 18-7 12-8 20 5 15-1 22-14 4-20 8-9 13-18 14-13-6-21-6-15 7-22 2-4-14-10-19-14-6-17-14 4-14 2-22-9-12-5-20 12-8 15-15 1-15 9-20 13 3 20-1 9-11 18-11z" fill="var(--seal)"/>
+  <circle cx="75" cy="75" r="47" fill="none" stroke="var(--seal2)" stroke-width="3"/>
+  <circle cx="75" cy="75" r="40" fill="none" stroke="var(--seal2)" stroke-width="1.5" stroke-dasharray="3 4"/>
+  <text x="75" y="70" text-anchor="middle" font-family="Georgia,serif" font-size="17" font-weight="700" fill="#eef4ff" letter-spacing="2">HARDENED</text>
+  <text x="75" y="90" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#eef4ff" letter-spacing="1.5">RADIUS 20</text>
+</svg>
+<div class="t">
+  <h1>A suppressor for the Walther PPK/S</h1>
+  <p class="sub">Forge session, 5 November 2026 · Goal: test whether it holds up · Outcome: survived, and changed the mod’s identity</p>
+</div>
+</header>
+
+<h2>Locked decisions</h2>
+<ul>
+<li><span class="tag lock">Lock</span>Purpose is stealth. The PPK/S deliberately becomes Build 42’s only quiet gun.</li>
+<li><span class="tag lock">Lock</span>Sound radius 20 with the suppressor on (70 without; the M9 is 100).</li>
+<li><span class="tag lock">Lock</span>Rarity is the only limit: it never wears out and can’t be crafted.</li>
+<li><span class="tag lock">Lock</span>Spawns copy the vanilla x8 scope’s rarity, in civilian spots only.</li>
+<li><span class="tag lock">Lock</span>“Realism decides every trade-off” stays, with the suppressor as its one named exception.</li>
+<li><span class="tag lock">Lock</span>Ships in the first update after version 1.</li>
+<li><span class="tag lock">Lock</span>Art comes from MihaM’s CC BY model; one small Lua script changes the gun’s noise.</li>
+</ul>
+<table>
+<tr><th>Spawn spot</th><th>Weight</th></tr>
+<tr><td>Gun store accessories</td><td>6</td></tr>
+<tr><td>Special pawn shop stock</td><td>6</td></tr>
+<tr><td>Gun store guns</td><td>4</td></tr>
+<tr><td>Garage gun stashes · Pawn shop guns · General gun loot (mid, late)</td><td>1 each</td></tr>
+</table>
+
+<h2>Rejected, and why</h2>
+<ul>
+<li><span class="tag kill">Killed</span>Radius 30: you chose the near-silent 20.</li>
+<li><span class="tag kill">Killed</span>Wearing out: a permanent find, and less code.</li>
+<li><span class="tag kill">Killed</span>Half the x8 scope’s rarity: you wanted an exact match.</li>
+<li><span class="tag kill">Killed</span>SWAT and army spawns: it would turn up where its gun never does.</li>
+<li><span class="tag kill">Killed</span>“Gameplay first”: the suppressor is the only big departure.</li>
+<li><span class="tag kill">Killed</span>Shipping it in version 1: untested code shouldn’t hold up the gun.</li>
+</ul>
+
+<h2>Weak points that survived</h2>
+<ul>
+<li><span class="tag risk">Risk</span>Once found, it’s permanently the best stealth gun. Rarity is the only brake.</li>
+<li><span class="tag risk">Risk</span>The game’s code has <code>setSoundRadius</code> available to Lua, but it hasn’t been tried in game.</li>
+<li><span class="tag risk">Risk</span>The copied spawn numbers won’t follow if the developers retune the x8 scope.</li>
+<li><span class="tag risk">Risk</span>The suppressor in MihaM’s model is unconfirmed until download.</li>
+<li><span class="tag risk">Risk</span>The gun model needs a muzzle attachment point, tested for floating or clipping.</li>
+</ul>
+
+<h2>Who pressure-tested it</h2>
+<div class="cast">
+<div class="p"><b>📋 John</b><span>Product Manager · what job is the suppressor doing?</span></div>
+<div class="p"><b>😤 Grumbal</b><span>Adversary · “best gun in the game” and floating suppressors</span></div>
+<div class="p"><b>💻 Amelia</b><span>Developer · the cost of Lua and what blocks a release</span></div>
+<div class="p"><b>📊 Mary</b><span>Analyst · a rule broken four times isn’t a rule</span></div>
+<div class="p"><b>🏗️ Winston</b><span>Architect · tie rarity to something in vanilla</span></div>
+<div class="p"><b>🎨 Sally</b><span>UX Designer · what players actually feel</span></div>
+<div class="p"><b>🔧 Walt</b><span>Guest · gunsmith: unthreaded barrels, quieter not silent</span></div>
+<div class="p"><b>🎮 Odile</b><span>Guest · multiplayer stealth player with no vanilla option</span></div>
+<div class="p"><b>🕵️ Jules</b><span>Guest · stealth-mod reviewer who wanted rationing</span></div>
+<div class="p"><b>🎯 Hank</b><span>Guest · realism purist who’ll stay for one honest exception</span></div>
+<div class="p"><b>🏛️ Ray</b><span>Guest · 1993 dealer of federally registered items</span></div>
+<div class="p"><b>🧊 Ines</b><span>Guest · game-asset artist: a 100-triangle tube will do</span></div>
+</div>
+
+<footer>Decisions in full: forged-idea.md in this folder. Next step: update SPEC-walther-ppk-mod with bmad-spec.</footer>
+</div></main>
+</body>
+</html>

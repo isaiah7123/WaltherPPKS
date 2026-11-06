@@ -14,6 +14,10 @@
 --
 -- After a container is filled, every PPK/S in it is given a magazine (the vanilla picker only
 -- inserts magazines at random).
+--
+-- Suppressor (first update): fixed entries, copies of the vanilla x8 scope's weights, in eight civilian
+-- procedural lists only (SUPPRESSOR_LOOT). Police/military containers that roll these lists by name
+-- (e.g. militarylocker -> GarageFirearms) are cleaned by the fill-time strip below.
 
 WaltherPPKS = WaltherPPKS or {}
 
@@ -23,6 +27,19 @@ local SOURCES = {
     ["Bullets9mmBox"] = { target = "WaltherPPKS.Bullets380Box", factor = 0.5 },
     ["9mmClip"]       = { target = "WaltherPPKS.PPKSClip",      factor = 0.5 },
 }
+
+local SUPPRESSOR = "WaltherPPKS.PPKSSuppressor"
+local SUPPRESSOR_LOOT = {
+    GunStoreAccessories = 6,
+    PawnShopGunsSpecial = 6,
+    GunStoreGuns = 4,
+    GunStoreRifles = 4,
+    GarageFirearms = 1,
+    PawnShopGuns = 1,
+    FirearmWeapons_Mid = 1,
+    FirearmWeapons_Late = 1,
+}
+WaltherPPKS.SUPPRESSOR_LOOT = SUPPRESSOR_LOOT
 
 local DENY = { "police", "army", "military", "swat", "security", "prisonguard", "sheriff",
                "outfit_", "inventorymale", "inventoryfemale" }
@@ -130,7 +147,23 @@ function WaltherPPKS.injectLoot()
     end
 
     for _, r in ipairs(roots()) do walk(r[2], r[1]) end
-    print("[WaltherPPKS] loot injected: " .. added .. " entries; " .. skipped .. " police/military/zombie lists skipped")
+
+    local suppressors = 0
+    local lists = ProceduralDistributions and ProceduralDistributions.list
+    for name, chance in pairs(SUPPRESSOR_LOOT) do
+        local list = lists and lists[name]
+        if list and type(list.items) == "table" then
+            table.insert(list.items, SUPPRESSOR)
+            table.insert(list.items, chance)
+            suppressors = suppressors + 1
+            if dump then print("[WaltherPPKS] ADD ProceduralDistributions.list." .. name .. ".items " .. SUPPRESSOR .. " " .. chance) end
+        else
+            print("[WaltherPPKS] WARNING: procedural list " .. name .. " not found; no suppressor added there")
+        end
+    end
+
+    print("[WaltherPPKS] loot injected: " .. added .. " entries; " .. skipped .. " police/military/zombie lists skipped; " ..
+          suppressors .. " suppressor entries")
 end
 
 Events.OnPostDistributionMerge.Add(WaltherPPKS.injectLoot)

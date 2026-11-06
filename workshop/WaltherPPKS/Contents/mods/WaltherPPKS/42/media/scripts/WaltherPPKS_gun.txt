@@ -1,5 +1,6 @@
 /* Walther PPK/S. Stats per spec: Weight 1.0, damage 0.6-1.0, range 10, sound radius 70, 7 rounds;
-   every other property and all sounds copied from vanilla Base.Pistol (M9), minus attachment parts.
+   every other property and all sounds copied from vanilla Base.Pistol (M9), except its attachment parts:
+   the only part is WaltherPPKS.PPKSSuppressor (first update, WaltherPPKS_suppressor.txt).
    Model: "Walther PPK" by MihaM (Sketchfab), CC BY 4.0. */
 module WaltherPPKS
 {
@@ -87,6 +88,7 @@ module WaltherPPKS
         UseEndurance = false,
         WeaponReloadType = handgun,
         WeaponSprite = WaltherPPKS.PPKS,
+        ModelWeaponPart = WaltherPPKS.PPKSSuppressor WaltherPPKS.PPKSSuppressor suppressor suppressor,
         Tags = base:hasmetal;base:firearm,
     }
 
@@ -101,6 +103,12 @@ module WaltherPPKS
         {
             offset = 0.0 0.0992 -0.0228,
             rotate = -90.0 0.0 0.0,
+        }
+        /* Suppressor seat: rear centre of the suppressor bore, at the muzzle (build script output). */
+        attachment suppressor
+        {
+            offset = 0.0 0.0992 -0.0228,
+            rotate = 0.0 0.0 0.0,
         }
         attachment world
         {

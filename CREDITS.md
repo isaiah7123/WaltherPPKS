@@ -1,13 +1,14 @@
 # Credits — Walther PPK/S (Project Zomboid Build 42 mod, ID `WaltherPPKS`)
 
-## Gun model
+## Gun and suppressor models
 
 "Walther PPK" by **MihaM** (Sketchfab: https://sketchfab.com/3d-models/walther-ppk-8595399f2c9141f4afeb8d138856a470), licensed under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
-Changes made for this mod (by `tools/build_model.py`): suppressor removed, polygon count reduced,
-textures combined and resized to 256x256, rescaled and re-oriented for Project Zomboid, inventory
-icon rendered from the model.
+Changes made for this mod (by `tools/build_model.py`): the model's suppressor split off into its own
+model (the PPK/S Suppressor item), polygon count reduced, textures combined and resized to 256x256
+(shared by gun and suppressor), rescaled and re-oriented for Project Zomboid, inventory icons rendered
+from the models.
 
 ## .380 ACP box texture and icon
 

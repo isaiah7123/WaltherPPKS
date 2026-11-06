@@ -35,6 +35,8 @@ local function deniedKey(k)
     return false
 end
 
+local SUPPRESSOR = "WaltherPPKS.PPKSSuppressor"
+
 local function short(name)
     return (name:gsub("^Base%.", ""))
 end
@@ -75,11 +77,16 @@ local function checkLoot()
     end
 
     local civilianLists, deniedLists, ppk, rounds = 0, 0, 0, 0
+    local suppressorsByList, suppressorTotal = {}, 0
     for items, e in pairs(info) do
         local entries, has9 = {}, false
         for i = 1, #items - 1, 2 do
             local name, chance = items[i], items[i + 1]
-            if type(name) == "string" then
+            if name == SUPPRESSOR then
+                suppressorTotal = suppressorTotal + 1
+                suppressorsByList[items] = suppressorsByList[items] or {}
+                table.insert(suppressorsByList[items], chance)
+            elseif type(name) == "string" then
                 entries[#entries + 1] = { name, chance }
                 if PAIRS[short(name)] then has9 = true end
             end
@@ -112,6 +119,22 @@ local function checkLoot()
             end
         end
     end
+    -- Matrix row "Loot": the suppressor is in exactly the 8 procedural lists, once each, at the fixed weights.
+    local lists = ProceduralDistributions and ProceduralDistributions.list or {}
+    local SUPPRESSOR_LOOT = WaltherPPKS and WaltherPPKS.SUPPRESSOR_LOOT or {}
+    local expected = 0
+    for name, weight in pairs(SUPPRESSOR_LOOT) do
+        expected = expected + 1
+        local list = lists[name]
+        local found = list and suppressorsByList[list.items]
+        check(found ~= nil and #found == 1 and found[1] == weight,
+              "suppressor in " .. name .. ": expected 1x at " .. weight .. ", found " ..
+              (found and (#found .. "x, first " .. tostring(found[1])) or "none"))
+    end
+    check(expected == 8, "WaltherPPKS.SUPPRESSOR_LOOT should name 8 lists, names " .. expected)
+    check(suppressorTotal == expected, "suppressor loot entries: expected " .. expected .. ", found " .. suppressorTotal)
+    print(TAG .. "loot: " .. suppressorTotal .. " suppressor entries")
+
     lootChecked = true
     check(civilianLists > 0, "no civilian list with M9/9mm found")
     check(ppk > 0, "no PPK/S loot entry found")
@@ -131,7 +154,7 @@ local function checkScripts()
     scriptsChecked = true
     local sm = getScriptManager()
     for _, id in ipairs({ "WaltherPPKS.PPKS", "WaltherPPKS.PPKSClip", "WaltherPPKS.Bullets380",
-                          "WaltherPPKS.Bullets380Box", "WaltherPPKS_TestGun380.TestGun380" }) do
+                          "WaltherPPKS.Bullets380Box", SUPPRESSOR, "WaltherPPKS_TestGun380.TestGun380" }) do
         try("FindItem " .. id, function() check(sm:FindItem(id) ~= nil, "missing script item " .. id) end)
     end
     for _, r in ipairs({ "WaltherPPKS_OpenBoxOfBullets380", "WaltherPPKS_PackBullets380" }) do
@@ -215,6 +238,8 @@ local function checkNames()
         else
             check(gun:getDisplayName() == "Walther PPK/S", "PPKS display name " .. tostring(gun:getDisplayName()))
             check(instanceItem("WaltherPPKS.Bullets380Box"):getDisplayName() == "Box of .380 ACP Rounds", "box display name")
+            check(instanceItem(SUPPRESSOR):getDisplayName() == "Walther PPK/S Suppressor", "suppressor display name")
+            check(getText("Tooltip_WaltherPPKS_Suppressor") ~= "Tooltip_WaltherPPKS_Suppressor", "suppressor tooltip not translated")
         end
     end)
 end
@@ -260,6 +285,115 @@ local function checkDeniedContainerStrip()
     end)
 end
 
+-- Suppressor (CAP-10, CAP-11): part definition, M9 rejection, attach/detach radius, reload reapply.
+local function checkSuppressor()
+    local S = WaltherPPKS and WaltherPPKS.Suppressor
+    check(S ~= nil and S.apply ~= nil, "WaltherPPKS.Suppressor not loaded")
+    if not S then return end
+    try("suppressor part", function()
+        local part = instanceItem(SUPPRESSOR)
+        check(instanceof(part, "WeaponPart"), "suppressor is not a WeaponPart")
+        check(part:getPartType() == "Canon", "suppressor part type " .. tostring(part:getPartType()))
+        local mounts = part:getMountOn()
+        check(mounts:size() == 1 and mounts:get(0) == "WaltherPPKS.PPKS", "suppressor MountOn " .. tostring(mounts))
+        check(near(part:getScriptItem():getActualWeight(), 0.3), "suppressor weight " .. tostring(part:getScriptItem():getActualWeight()))
+        check(near(part:getWeightModifier(), 0.3), "suppressor weight modifier " .. tostring(part:getWeightModifier()))
+        local gun, m9 = instanceItem("WaltherPPKS.PPKS"), instanceItem("Base.Pistol")
+        check(part:canAttach(nil, gun), "suppressor cannot attach to the PPK/S")
+        check(part:canDetach(nil, gun), "suppressor cannot detach from the PPK/S")
+        -- Matrix row "Other gun": the vanilla menu only offers parts whose canAttach is true.
+        check(not part:canAttach(nil, m9), "suppressor can attach to the M9")
+        check(not part:canAttach(nil, instanceItem("Base.Revolver")), "suppressor can attach to the revolver")
+    end)
+    try("attach/detach radius", function()
+        local gun, part = instanceItem("WaltherPPKS.PPKS"), instanceItem(SUPPRESSOR)
+        check(S.apply(gun) == 70 and gun:getSoundRadius() == 70, "bare PPK/S radius " .. gun:getSoundRadius())
+        gun:attachWeaponPart(part)
+        check(gun:getWeaponPart("Canon") ~= nil, "suppressor not attached")
+        check(S.apply(gun) == 20 and gun:getSoundRadius() == 20, "suppressed radius " .. gun:getSoundRadius())
+        gun:detachWeaponPart(part)
+        check(gun:getWeaponPart("Canon") == nil, "suppressor not detached")
+        check(S.apply(gun) == 70 and gun:getSoundRadius() == 70, "detached radius " .. gun:getSoundRadius())
+        local m9 = instanceItem("Base.Pistol")
+        check(S.apply(m9) == nil and m9:getSoundRadius() == 100, "radius rule touched the M9: " .. m9:getSoundRadius())
+    end)
+    -- The vanilla attach/detach actions' complete() is wrapped. The original needs a real player, so it is
+    -- replaced by a stub for this check; only the wrapper's reapply is exercised.
+    try("timed action wrappers", function()
+        check(type(S.orig.upgrade) == "function", "vanilla ISUpgradeWeapon.complete not captured")
+        check(type(S.orig.remove) == "function", "vanilla ISRemoveWeaponUpgrade.complete not captured")
+        check(ISUpgradeWeapon.complete ~= S.orig.upgrade, "ISUpgradeWeapon.complete not wrapped")
+        check(ISRemoveWeaponUpgrade.complete ~= S.orig.remove, "ISRemoveWeaponUpgrade.complete not wrapped")
+        local savedUp, savedRm = S.orig.upgrade, S.orig.remove
+        local gun, part = instanceItem("WaltherPPKS.PPKS"), instanceItem(SUPPRESSOR)
+        -- the wrappers read self.weapon: make sure the vanilla constructors still set it
+        local okUp, up = pcall(ISUpgradeWeapon.new, ISUpgradeWeapon, nil, gun, part)
+        if okUp then
+            check(up.weapon == gun, "ISUpgradeWeapon:new did not set .weapon")
+        else
+            print(TAG .. "SKIP ISUpgradeWeapon:new needs a real character: " .. tostring(up))
+        end
+        local okRm, rm = pcall(ISRemoveWeaponUpgrade.new, ISRemoveWeaponUpgrade, nil, gun, "Canon")
+        if okRm then
+            check(rm.weapon == gun, "ISRemoveWeaponUpgrade:new did not set .weapon")
+        else
+            print(TAG .. "SKIP ISRemoveWeaponUpgrade:new needs a real character: " .. tostring(rm))
+        end
+        local ok, err = pcall(function()
+            S.orig.upgrade = function(self) self.weapon:attachWeaponPart(self.part); return true end
+            S.orig.remove = function(self) self.weapon:detachWeaponPart(self.weapon:getWeaponPart(self.partType)); return true end
+            ISUpgradeWeapon.complete({ weapon = gun, part = part })
+            check(gun:getSoundRadius() == 20, "radius after attach action " .. gun:getSoundRadius())
+            ISRemoveWeaponUpgrade.complete({ weapon = gun, partType = "Canon" })
+            check(gun:getSoundRadius() == 70, "radius after detach action " .. gun:getSoundRadius())
+        end)
+        S.orig.upgrade, S.orig.remove = savedUp, savedRm
+        check(ok, "wrapper raised: " .. tostring(err))
+    end)
+    -- Matrix row "Save/reload": the radius is not saved, so a loaded gun has 70 until reapplied.
+    try("reload reapply", function()
+        local gun, part = instanceItem("WaltherPPKS.PPKS"), instanceItem(SUPPRESSOR)
+        gun:attachWeaponPart(part)
+        S.apply(gun)
+        gun:setSoundRadius(70)   -- what loading does
+        triggerEvent("OnEquipPrimary", nil, gun)
+        check(gun:getSoundRadius() == 20, "radius after equipping a loaded suppressed gun " .. gun:getSoundRadius())
+        -- game-start bag walk: duffel bag > satchel > suppressed PPK/S
+        local duffel, satchel = instanceItem("Base.Bag_DuffelBag"), instanceItem("Base.Bag_Satchel")
+        local bagged = instanceItem("WaltherPPKS.PPKS")
+        bagged:attachWeaponPart(instanceItem(SUPPRESSOR))
+        bagged:setSoundRadius(70)
+        satchel:getInventory():AddItem(bagged)
+        duffel:getInventory():AddItem(satchel)
+        S.applyAll(duffel:getInventory())
+        check(bagged:getSoundRadius() == 20, "radius after bag walk " .. bagged:getSoundRadius())
+        -- per-update path (multiplayer client): gun in hand, reset to 70
+        local held = instanceItem("WaltherPPKS.PPKS")
+        held:attachWeaponPart(instanceItem(SUPPRESSOR))
+        held:setSoundRadius(70)
+        check(S.onPlayerUpdate ~= nil, "S.onPlayerUpdate missing")
+        S.onPlayerUpdate({ getPrimaryHandItem = function() return held end })
+        check(held:getSoundRadius() == 20, "radius after player update " .. held:getSoundRadius())
+        -- the dedicated server has no players: onGameStart must not throw
+        local ok, err = pcall(S.onGameStart)
+        check(ok, "onGameStart raised: " .. tostring(err))
+    end)
+    -- Matrix row "Military fill": a militarylocker rolling GarageFirearms loses the suppressor.
+    try("suppressor military strip", function()
+        local inv = instanceItem("Base.Bag_DuffelBag"):getInventory()
+        local part, scope = instanceItem(SUPPRESSOR), instanceItem("Base.x8Scope")
+        inv:AddItem(part); inv:AddItem(scope)
+        triggerEvent("OnFillContainer", "gunstore", "militarylocker", inv)
+        check(not inv:contains(part), "suppressor left in militarylocker")
+        check(inv:contains(scope), "x8 scope removed from militarylocker")
+        local civ = instanceItem("Base.Bag_DuffelBag"):getInventory()
+        local part2 = instanceItem(SUPPRESSOR)
+        civ:AddItem(part2)
+        triggerEvent("OnFillContainer", "gunstore", "counter", civ)
+        check(civ:contains(part2), "suppressor removed from a civilian gun store counter")
+    end)
+end
+
 local resultDone = false
 local function result()
     if resultDone then return end
@@ -269,6 +403,7 @@ local function result()
     checkNames()
     checkMagazineGuarantee()
     checkDeniedContainerStrip()
+    checkSuppressor()
     print(TAG .. "RESULT " .. (fails == 0 and "PASS" or "FAIL") .. " (" .. passes .. " passed, " .. fails .. " failed)")
 end
 

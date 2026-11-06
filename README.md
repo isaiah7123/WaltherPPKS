@@ -53,3 +53,7 @@ To play-test in the game, link `workshop/WaltherPPKS` into `~/Zomboid/Workshop/`
 - **Vanilla art and sounds:** rounds, magazine and sounds reuse vanilla art and audio.
 
 This is a free fan mod that requires Project Zomboid. It is not official and not affiliated with The Indie Stone or Walther. See [CREDITS.md](CREDITS.md).
+
+## License
+
+The code, scripts, tools and docs are under the [MIT License](LICENSE). The gun model and everything made from it stay under CC BY 4.0. The box art edited from vanilla stays under the Project Zomboid Modding Policy.

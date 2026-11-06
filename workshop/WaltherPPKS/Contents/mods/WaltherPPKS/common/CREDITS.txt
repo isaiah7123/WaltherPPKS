@@ -1,0 +1,15 @@
+Walther PPK/S mod for Project Zomboid (Build 42)
+
+Gun model: "Walther PPK" by MihaM (Sketchfab), licensed under CC BY 4.0
+Source: https://sketchfab.com/3d-models/walther-ppk-8595399f2c9141f4afeb8d138856a470
+License: https://creativecommons.org/licenses/by/4.0/
+Changes: suppressor removed, polygon count reduced, textures resized/re-baked, rescaled for Project Zomboid.
+
+.380 ACP box texture and icon: edited from Project Zomboid's vanilla 9mm box art, used under the
+Project Zomboid Modding Policy. Free mod that requires the base game; not sold, not reused outside
+Project Zomboid.
+
+.380 rounds and magazine reuse vanilla art (PistolAmmo/9mmRounds, BerettaClip/GunMagazine/Gun_Pistol_Magazine).
+Sounds are vanilla M9 sounds.
+
+This is a free fan mod. It is not official and not affiliated with The Indie Stone or Walther.

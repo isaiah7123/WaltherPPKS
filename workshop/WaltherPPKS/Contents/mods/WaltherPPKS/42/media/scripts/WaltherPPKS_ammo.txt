@@ -1,0 +1,95 @@
+/* .380 ACP ammunition for the Walther PPK/S mod. Defined apart from the gun so other .380 guns can share it.
+   Ammo type waltherppks:bullets_380 is registered in media/registries.lua. IDs never change after release. */
+module WaltherPPKS
+{
+    imports
+    {
+        Base
+    }
+
+    item Bullets380
+    {
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.02,
+        Icon = PistolAmmo,
+        count = 5,
+        MetalValue = 1.0,
+        WorldStaticModel = 9mmRounds,
+        Tags = base:ammo,
+    }
+
+    item Bullets380Box
+    {
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.6,
+        Icon = PPKS380Box,
+        MetalValue = 30.0,
+        PlaceMultipleSound = BoxOfRoundsPlaceAll,
+        PlaceOneSound = BoxOfRoundsPlaceOne,
+        StaticModel = WaltherPPKS.PPKS380Box,
+        WorldStaticModel = WaltherPPKS.PPKS380Box,
+        DoubleClickRecipe = WaltherPPKS_OpenBoxOfBullets380,
+    }
+
+    item PPKSClip
+    {
+        DisplayCategory = Ammo,
+        ItemType = base:normal,
+        Weight = 0.2,
+        Icon = BerettaClip,
+        AmmoType = waltherppks:bullets_380,
+        CanStack = false,
+        GunType = WaltherPPKS.PPKS,
+        MaxAmmo = 7,
+        StaticModel = GunMagazine,
+        WorldStaticModel = Gun_Pistol_Magazine,
+        Tags = base:hasmetal;base:pistolmagazine,
+    }
+
+    model PPKS380Box
+    {
+        mesh = WorldItems/HandGunAmmoBox,
+        texture = WorldItems/BoxOfRounds380ACP,
+        scale = 0.4,
+    }
+}
+
+/* Mod-only recipes (vanilla recipes untouched). Kept in module Base, prefixed, so the item's
+   DoubleClickRecipe resolves by plain name exactly like vanilla's OpenBoxOfBullets50. */
+module Base
+{
+    craftRecipe WaltherPPKS_OpenBoxOfBullets380
+    {
+        timedAction = OpenAmmoBox,
+        time = 15,
+        category = Packing,
+        recipeGroup = OpenBox,
+        Tags = InHandCraft;CanBeDoneInDark,
+        inputs
+        {
+            item 1 [WaltherPPKS.Bullets380Box] flags[Prop2;AllowFavorite;InheritFavorite],
+        }
+        outputs
+        {
+            item 50 WaltherPPKS.Bullets380,
+        }
+    }
+
+    craftRecipe WaltherPPKS_PackBullets380
+    {
+        timedAction = PlaceAmmoInBox,
+        time = 15,
+        category = Packing,
+        Tags = InHandCraft,
+        inputs
+        {
+            item 50 [WaltherPPKS.Bullets380] flags[AllowFavorite;InheritFavorite],
+        }
+        outputs
+        {
+            item 1 WaltherPPKS.Bullets380Box,
+        }
+    }
+}

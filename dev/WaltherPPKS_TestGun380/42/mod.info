@@ -1,0 +1,5 @@
+name=Walther PPK/S - .380 test gun (DEV)
+id=WaltherPPKS_TestGun380
+description=Dev-only throwaway .380 gun that uses the Walther PPK/S ammo. Not for release.
+require=WaltherPPKS
+versionMin=42.20

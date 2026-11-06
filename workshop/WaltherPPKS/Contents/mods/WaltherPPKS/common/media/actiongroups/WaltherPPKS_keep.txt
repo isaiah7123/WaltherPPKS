@@ -1,0 +1,1 @@
+Placeholder so this folder exists: B42.21 logs an error when a mod has no media/actiongroups folder.

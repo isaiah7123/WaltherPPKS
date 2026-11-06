@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forge Report: Walther PPK/S</title>
+<style>
+:root{--bg:#f6f1e7;--paper:#fffdf8;--ink:#2a2420;--muted:#6f655c;--line:#e2d8c8;--seal:#9b1c1c;--seal2:#c53030;--ok:#2f6b3a;--warn:#9a6a00;--kill:#8a2b2b}
+@media (prefers-color-scheme:dark){:root{--bg:#171412;--paper:#211d1a;--ink:#eee6db;--muted:#a99d90;--line:#3a332d;--seal:#c53030;--seal2:#e05252;--ok:#7cc48a;--warn:#e0b24a;--kill:#e07a7a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Georgia,"Times New Roman",serif}
+main{max-width:860px;margin:0 auto;padding:32px 16px 64px}
+.paper{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:32px 28px;position:relative}
+header{display:flex;gap:24px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+header .t{flex:1 1 320px}
+h1{margin:0 0 4px;font-size:30px}
+.sub{color:var(--muted);margin:0}
+h2{font-size:19px;margin:28px 0 10px;letter-spacing:.02em}
+ul{margin:0;padding-left:20px}
+li{margin:6px 0}
+.tag{font:600 11px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.08em;padding:3px 6px;border-radius:4px;margin-right:6px;vertical-align:2px}
+.lock{color:var(--ok);border:1px solid currentColor}
+.kill{color:var(--kill);border:1px solid currentColor}
+.risk{color:var(--warn);border:1px solid currentColor}
+.cast{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.p{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.p b{display:block;font-size:15px}
+.p span{color:var(--muted)}
+footer{margin-top:28px;color:var(--muted);font-size:13px}
+svg{flex:0 0 auto}
+</style>
+</head>
+<body>
+<main><div class="paper">
+<header>
+<svg width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Wax seal: Hardened">
+  <path d="M75 6c9 0 12 7 20 9s15-3 21 4 2 14 6 21 11 9 11 18-7 12-8 20 5 15-1 22-14 4-20 8-9 13-18 14-13-6-21-6-15 7-22 2-4-14-10-19-14-6-17-14 4-14 2-22-9-12-5-20 12-8 15-15 1-15 9-20 13 3 20-1 9-11 18-11z" fill="var(--seal)"/>
+  <circle cx="75" cy="75" r="47" fill="none" stroke="var(--seal2)" stroke-width="3"/>
+  <circle cx="75" cy="75" r="40" fill="none" stroke="var(--seal2)" stroke-width="1.5" stroke-dasharray="3 4"/>
+  <text x="75" y="70" text-anchor="middle" font-family="Georgia,serif" font-size="17" font-weight="700" fill="#fff4e6" letter-spacing="2">HARDENED</text>
+  <text x="75" y="90" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#fff4e6" letter-spacing="1.5">PPK/S · .380</text>
+</svg>
+<div class="t">
+  <h1>Walther PPK/S for Project Zomboid</h1>
+  <p class="sub">Forge session, 5 November 2026 · Goal: turn the idea into concrete decisions · Outcome: hardened and ready for a spec</p>
+</div>
+</header>
+
+<h2>Locked decisions</h2>
+<ul>
+<li><span class="tag lock">Lock</span>Build 42 only; no B41 version.</li>
+<li><span class="tag lock">Lock</span>PPK/S in .380 ACP with a 7-round magazine. Gun and mod are named “Walther PPK/S”.</li>
+<li><span class="tag lock">Lock</span>New .380 round, box and magazine, under the mod’s own name so later .380 guns can share them.</li>
+<li><span class="tag lock">Lock</span>Common in civilian spots (homes, gun stores, cars, safes), never police or military; .380 scarcer than 9mm.</li>
+<li><span class="tag lock">Lock</span>Its only edge over the M9 is low weight; noise and everything else stay realistic.</li>
+<li><span class="tag lock">Lock</span>3D model from a free source whose license allows changes and sharing.</li>
+<li><span class="tag lock">Lock</span>Display names only in translation files, never in item IDs.</li>
+<li><span class="tag lock">Lock</span>Lean version 1: no attachments, vanilla pistol sounds.</li>
+</ul>
+
+<h2>Rejected, and why</h2>
+<ul>
+<li><span class="tag kill">Killed</span>Reusing 9mm: unrealistic, and it turns the gun into a reskinned M9.</li>
+<li><span class="tag kill">Killed</span>.32 ACP: same work as .380, weaker, and rarer in the US.</li>
+<li><span class="tag kill">Killed</span>Making it quieter: a real .380 isn’t meaningfully quieter.</li>
+<li><span class="tag kill">Killed</span>A generic vanilla-style name: works against the realism direction.</li>
+<li><span class="tag kill">Killed</span>The classic 6-round PPK: weaker, and less true to 1993 Kentucky.</li>
+<li><span class="tag kill">Killed</span>Attachments in version 1: no rail on a PPK/S, and extra work before the first release.</li>
+</ul>
+
+<h2>Weak points that survived</h2>
+<ul>
+<li><span class="tag risk">Risk</span>The weight edge may be too small to feel; players may swap it out early. Check in playtesting.</li>
+<li><span class="tag risk">Risk</span>The model’s license must be confirmed, and its polygon count and texture size cut to match vanilla guns.</li>
+<li><span class="tag risk">Risk</span>Small trademark risk from the real name; a rename only touches translations and the Workshop page.</li>
+<li><span class="tag risk">Open</span>The mod ID and item namespace aren’t chosen yet, and can’t contain “/”.</li>
+</ul>
+
+<h2>Who pressure-tested it</h2>
+<div class="cast">
+<div class="p"><b>🏗️ Winston</b><span>Architect · weighed the trade-offs of one build vs two, and pushed to fix capacity early</span></div>
+<div class="p"><b>📋 John</b><span>Product Manager · asked why anyone would keep it over an M9</span></div>
+<div class="p"><b>💻 Amelia</b><span>Developer · item IDs and keeping version 1 small</span></div>
+<div class="p"><b>📊 Mary</b><span>Analyst · who owned a PPK in 1993 Kentucky</span></div>
+<div class="p"><b>🎨 Sally</b><span>UX Designer · the night-looting moment players can feel</span></div>
+<div class="p"><b>😤 Grumbal</b><span>Adversary · licenses and polygon counts before any code</span></div>
+<div class="p"><b>🧰 Dusty</b><span>Guest · multiplayer server admin who stayed on B41</span></div>
+<div class="p"><b>🎯 Hank</b><span>Guest · realism purist who writes one-star reviews</span></div>
+<div class="p"><b>🔫 Rook</b><span>Guest · weapons-pack author worried about clashing calibers</span></div>
+<div class="p"><b>🪓 Marta</b><span>Guest · plays one-life runs with scarce loot</span></div>
+<div class="p"><b>⚖️ Bram</b><span>Guest · balance reviewer skeptical of “quiet” .380</span></div>
+<div class="p"><b>🧊 Ines</b><span>Guest · game-asset artist sizing the low-poly model</span></div>
+<div class="p"><b>🧾 Priya</b><span>Guest · has handled takedown requests on a mod-hosting site</span></div>
+<div class="p"><b>🏪 Earl</b><span>Guest · 1993 Kentucky gun counter, history of the PPK/S</span></div>
+<div class="p"><b>👜 Tess</b><span>Guest · gear-mod player who wants holsters, eventually</span></div>
+</div>
+
+<footer>Decisions in full: forged-idea.md in this folder. Next step: hand it to bmad-spec or bmad-build.</footer>
+</div></main>
+</body>
+</html>

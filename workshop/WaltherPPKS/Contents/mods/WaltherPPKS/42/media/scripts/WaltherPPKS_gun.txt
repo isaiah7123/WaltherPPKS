@@ -1,0 +1,116 @@
+/* Walther PPK/S. Stats per spec: Weight 1.0, damage 0.6-1.0, range 10, sound radius 70, 7 rounds;
+   every other property and all sounds copied from vanilla Base.Pistol (M9), minus attachment parts.
+   Model: "Walther PPK" by MihaM (Sketchfab), CC BY 4.0. */
+module WaltherPPKS
+{
+    imports
+    {
+        Base
+    }
+
+    item PPKS
+    {
+        DisplayCategory = Weapon,
+        ItemType = base:weapon,
+        Weight = 1.0,
+        Icon = PPKS,
+        AimingPerkCritModifier = 6,
+        AimingPerkHitChanceModifier = 4,
+        AimingPerkMinAngleModifier = 0.05,
+        AimingPerkRangeModifier = 0,
+        AimReleaseSound = M9AimRelease,
+        Aimingtime = 25,
+        AmmoBox = WaltherPPKS.Bullets380Box,
+        AmmoType = waltherppks:bullets_380,
+        AttachmentType = Holster,
+        BreakSound = M9Break,
+        BringToBearSound = M9BringToBear,
+        ClickSound = M9Jam,
+        ClipSize = 7,
+        ConditionLowerChanceOneIn = 200,
+        ConditionMax = 10,
+        CritDmgMultiplier = 4.0,
+        CriticalChance = 20.0,
+        DoorDamage = 5,
+        DropSound = M9Drop,
+        EjectAmmoSound = M9EjectAmmo,
+        EjectAmmoStartSound = M9EjectAmmoStart,
+        EjectAmmoStopSound = M9EjectAmmoStop,
+        EquipSound = M9Equip,
+        HitChance = 50,
+        HitSound = BulletImpact,
+        ImpactSound = null,
+        InsertAmmoSound = M9InsertAmmo,
+        InsertAmmoStartSound = M9InsertAmmoStart,
+        InsertAmmoStopSound = M9InsertAmmoStop,
+        IsAimedFirearm = true,
+        JamGunChance = 1,
+        KnockBackOnNoDeath = true,
+        KnockdownMod = 2.0,
+        MagazineType = WaltherPPKS.PPKSClip,
+        MaxAmmo = 7,
+        MaxDamage = 1.0,
+        MaxHitcount = 1,
+        MaxRange = 10.0,
+        MinSightRange = 2,
+        MaxSightRange = 6.0,
+        MetalValue = 30.0,
+        MinAngle = 0.95,
+        MinDamage = 0.6,
+        MinRange = 0.61,
+        MinimumSwingtime = 0.5,
+        MultipleHitConditionAffected = false,
+        MuzzleFlashModelKey = muzzle_flash_handgun,
+        NPCSoundBoost = 1.5,
+        Projectilecount = 1,
+        PushBackMod = 0.3,
+        RackSound = M9Rack,
+        Ranged = true,
+        RecoilDelay = 12,
+        Reloadtime = 30,
+        RunAnim = Run_Weapon2,
+        ShellFallSound = M9CartridgeFall,
+        SoundGain = 1.5,
+        SoundRadius = 70,
+        SoundVolume = 30,
+        SplatBloodOnNoDeath = true,
+        SplatNumber = 3,
+        SplatSize = 3,
+        StopPower = 5.0,
+        SubCategory = Firearm,
+        SwingAmountBeforeImpact = 0.0,
+        SwingAnim = Handgun,
+        SwingSound = M9Shoot,
+        Swingtime = 0.5,
+        ToHitModifier = 1.5,
+        UnequipSound = M9UnEquip,
+        UseEndurance = false,
+        WeaponReloadType = handgun,
+        WeaponSprite = WaltherPPKS.PPKS,
+        Tags = base:hasmetal;base:firearm,
+    }
+
+    /* Mesh built by tools/build_model.py: X width, +Y muzzle, +Z up, same layout as vanilla Handgun03.
+       muzzle offset printed by the build script; world/Bip01_Prop2 start from vanilla Handgun03. */
+    model PPKS
+    {
+        mesh = weapons/PPKS,
+        texture = weapons/PPKS,
+
+        attachment muzzle
+        {
+            offset = 0.0 0.0992 -0.0228,
+            rotate = -90.0 0.0 0.0,
+        }
+        attachment world
+        {
+            offset = -0.009 0.046 0.0,
+            rotate = 0.0 0.0 0.0,
+        }
+        attachment Bip01_Prop2
+        {
+            offset = -0.0338 0.0424 0.0,
+            rotate = 90.0008 1.1964 -90.0396,
+        }
+    }
+}

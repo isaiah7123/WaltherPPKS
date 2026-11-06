@@ -1,0 +1,14 @@
+# Local AI/workflow tooling (not part of the mod)
+.claude/
+_bmad/
+
+# Python / Blender
+__pycache__/
+*.pyc
+*.blend1
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/

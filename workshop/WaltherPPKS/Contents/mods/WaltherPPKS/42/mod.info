@@ -1,0 +1,7 @@
+name=Walther PPK/S
+id=WaltherPPKS
+description=Adds the Walther PPK/S with its own .380 ACP ammo, magazine and box. Civilian loot only. Model "Walther PPK" by MihaM, CC BY 4.0: https://sketchfab.com/3d-models/walther-ppk-8595399f2c9141f4afeb8d138856a470
+author=Costas
+versionMin=42.20
+icon=icon.png
+poster=poster.png

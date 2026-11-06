@@ -6,9 +6,9 @@ The civilian concealed-carry pistol a 1993 Kentucky household would own, with it
 
 ## What it adds
 
-- **Walther PPK/S** (.380 ACP, 7-round magazine). Damage 0.6–1.0, the same as the M9, but with a shorter range (10), fewer rounds (7 vs 15), lighter weight (1.0 vs 1.5) and M1911-level noise (radius 70). Everything else follows the vanilla M9. Vanilla unsuppressed pistol sounds and custom suppressed shot sound.
+- **Walther PPK/S** (.380 ACP, 7-round magazine). Damage 0.6–1.0, the same as the M9, but with a shorter range (10), fewer rounds (7 vs 15), lighter weight (1.0 vs 1.5) and M1911-level noise (radius 70). Fits an ankle holster as well as hip and shoulder holsters while unsuppressed. Everything else follows the vanilla M9. Vanilla unsuppressed pistol sounds and custom suppressed shot sound.
 - **.380 ACP rounds, boxes of 50** (with their own green box art) and **PPK/S magazines**. Open a box into 50 rounds, or pack 50 rounds into a box. No carton.
-- **Walther PPK/S Suppressor** A rare barrel attachment for the PPK/S only: attach and remove it through the vanilla attachment menu, no tool needed. While it's on, each shot plays a suppressed shot sound and the gun's sound radius drops from 70 to 10. It never wears out and can't be crafted.
+- **Walther PPK/S Suppressor** A rare barrel attachment for the PPK/S only: attach and remove it through the vanilla attachment menu, no tool needed. While it's on, each shot plays a suppressed shot sound and the gun's sound radius drops from 70 to 10. With it on, the gun no longer fits an ankle holster: only hip and shoulder holsters take it. It never wears out and can't be crafted.
 
 ## Loot
 

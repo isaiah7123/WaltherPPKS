@@ -1,6 +1,8 @@
 /* Walther PPK/S. Stats per spec: Weight 1.0, damage 0.6-1.0, range 10, sound radius 70, 7 rounds;
    every other property and all sounds copied from vanilla Base.Pistol (M9), except its attachment parts:
-   the only part is WaltherPPKS.PPKSSuppressor (first update, WaltherPPKS_suppressor.txt).
+   the only part is WaltherPPKS.PPKSSuppressor (first update, WaltherPPKS_suppressor.txt), and
+   AttachmentType = HolsterSmall (ankle and normal holsters, like the vanilla short revolver; switched to
+   Holster while suppressed by lua/shared/WaltherPPKS_Suppressor.lua).
    Model: "Walther PPK" by MihaM (Sketchfab), CC BY 4.0. */
 module WaltherPPKS
 {
@@ -23,7 +25,7 @@ module WaltherPPKS
         Aimingtime = 25,
         AmmoBox = WaltherPPKS.Bullets380Box,
         AmmoType = waltherppks:bullets_380,
-        AttachmentType = Holster,
+        AttachmentType = HolsterSmall,
         BreakSound = M9Break,
         BringToBearSound = M9BringToBear,
         ClickSound = M9Jam,

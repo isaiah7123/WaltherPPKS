@@ -344,6 +344,47 @@ local function checkSuppressor()
             print(TAG .. "SKIP suppressed clip file: sound clip API not exposed to Lua")
         end
     end)
+    -- CAP-13: ankle holster only while unsuppressed (HolsterSmall), normal holsters only while suppressed.
+    try("holster type", function()
+        local gun, part = instanceItem("WaltherPPKS.PPKS"), instanceItem(SUPPRESSOR)
+        check(gun:getAttachmentType() == "HolsterSmall", "script holster type " .. tostring(gun:getAttachmentType()))
+        S.apply(gun)
+        check(gun:getAttachmentType() == "HolsterSmall", "bare holster type " .. tostring(gun:getAttachmentType()))
+        gun:attachWeaponPart(part)
+        S.apply(gun)
+        check(gun:getAttachmentType() == "Holster", "suppressed holster type " .. tostring(gun:getAttachmentType()))
+        gun:detachWeaponPart(part)
+        S.apply(gun)
+        check(gun:getAttachmentType() == "HolsterSmall", "detached holster type " .. tostring(gun:getAttachmentType()))
+        local m9 = instanceItem("Base.Pistol")
+        S.apply(m9)
+        check(m9:getAttachmentType() == "Holster", "holster rule touched the M9: " .. tostring(m9:getAttachmentType()))
+        -- vanilla slot table (client file): ankle takes only HolsterSmall, hip/shoulder take both
+        local okDef = pcall(require, "Hotbar/ISHotbarAttachDefinition")
+        if okDef and type(ISHotbarAttachDefinition) == "table" and #ISHotbarAttachDefinition > 0 then
+            local byType = {}
+            for _, d in ipairs(ISHotbarAttachDefinition) do byType[d.type] = d.attachments end
+            local ankle = byType.HolsterAnkle
+            check(ankle and ankle.HolsterSmall and not ankle.Holster, "ankle slot types changed")
+            for _, t in ipairs({ "HolsterRight", "HolsterLeft", "HolsterShoulder" }) do
+                local a = byType[t]
+                check(a and a.Holster and a.HolsterSmall, t .. " does not take both holster types")
+            end
+        else
+            print(TAG .. "SKIP holster slot table: client hotbar definitions not loaded on the server")
+        end
+        -- main-inventory pass: a loaded suppressed gun (script type) is switched back to Holster
+        local inv = instanceItem("Base.Bag_DuffelBag"):getInventory()
+        local loaded = instanceItem("WaltherPPKS.PPKS")
+        loaded:attachWeaponPart(instanceItem(SUPPRESSOR))
+        loaded:setAttachmentType("HolsterSmall")   -- what loading does
+        inv:AddItem(loaded)
+        S.lastPass[11] = nil
+        S.onPlayerUpdate({ getPrimaryHandItem = function() return nil end, getPlayerNum = function() return 11 end,
+                           getInventory = function() return inv end })
+        check(loaded:getAttachmentType() == "Holster", "inventory pass holster type " .. tostring(loaded:getAttachmentType()))
+        S.lastPass[11] = nil
+    end)
     -- Polish pass: the dropped suppressor lies flat (world point turned 90 degrees about Z).
     try("suppressor ground pose", function()
         local ms = getScriptManager():getModelScript("WaltherPPKS.PPKSSuppressor_Ground")

@@ -1,8 +1,10 @@
--- Walther PPK/S suppressor: while WaltherPPKS.PPKSSuppressor is attached the sound radius is 10 and each
--- shot plays WaltherPPKS_ShootSuppressed; otherwise 70 and the vanilla M9Shoot.
+-- Walther PPK/S suppressor: while WaltherPPKS.PPKSSuppressor is attached the sound radius is 10, each
+-- shot plays WaltherPPKS_ShootSuppressed and the holster type is Holster (hip/shoulder only); otherwise
+-- 70, the vanilla M9Shoot and HolsterSmall (ankle holster too). A suppressed gun already in an ankle
+-- holster is dropped from it by vanilla ISHotbar:update (it no longer fits); it stays in the inventory.
 --
 -- Vanilla weapon parts can't change noise or the shot sound, so both are set here. HandWeapon does not
--- save its sound radius (it resets to the script value, 70, on load), so both are reapplied:
+-- save its sound radius (it resets to the script value, 70, on load), so all three are reapplied:
 --   * after the vanilla attach / detach timed actions complete (server side in multiplayer),
 --   * when the gun is equipped,
 --   * at game start, for guns already in the player's inventory,
@@ -28,24 +30,32 @@ local RADIUS_SUPPRESSED = 10
 local RADIUS_NORMAL = 70
 local SOUND_SUPPRESSED = "WaltherPPKS_ShootSuppressed"
 local SOUND_NORMAL = "M9Shoot"
+local HOLSTER_SUPPRESSED = "Holster"        -- hip and shoulder holsters
+local HOLSTER_NORMAL = "HolsterSmall"       -- hip, shoulder and ankle holsters
+local INVENTORY_PASS_MS = 500               -- how often each player's main inventory is reapplied
 
 local S = WaltherPPKS.Suppressor or {}   -- kept across a Lua reload so the wrappers never stack
 WaltherPPKS.Suppressor = S
 
 S.SOUND_SUPPRESSED, S.SOUND_NORMAL = SOUND_SUPPRESSED, SOUND_NORMAL
+S.HOLSTER_SUPPRESSED, S.HOLSTER_NORMAL = HOLSTER_SUPPRESSED, HOLSTER_NORMAL
 
--- The one radius and shot-sound rule. Returns the radius set, or nil when the item isn't a PPK/S.
+-- The one radius, shot-sound and holster rule. Returns the radius set, or nil when the item isn't a PPK/S.
 function S.apply(item)
     if not item or not instanceof(item, "HandWeapon") or item:getFullType() ~= GUN then return nil end
     local part = item:getWeaponPart("Canon")
     local suppressed = part ~= nil and part:getFullType() == SUPPRESSOR
     local radius = suppressed and RADIUS_SUPPRESSED or RADIUS_NORMAL
     local sound = suppressed and SOUND_SUPPRESSED or SOUND_NORMAL
+    local holster = suppressed and HOLSTER_SUPPRESSED or HOLSTER_NORMAL
     if item:getSoundRadius() ~= radius then
         item:setSoundRadius(radius)
     end
     if item:getSwingSound() ~= sound then
         item:setSwingSound(sound)
+    end
+    if item:getAttachmentType() ~= holster then
+        item:setAttachmentType(holster)
     end
     return radius
 end
@@ -126,6 +136,18 @@ function S.onGameStart()
     end
 end
 
+-- Top-level items only: a gun must be in the main inventory to be holstered. Covers guns picked up or
+-- loaded from a save, before the hotbar menus read their holster type.
+function S.applyMain(container)
+    if not container then return end
+    local items = container:getItems()
+    for i = 0, items:size() - 1 do
+        S.apply(items:get(i))
+    end
+end
+
+S.lastPass = S.lastPass or {}
+
 -- Last seen suppressor state of the gun in each player's hand: { id = item ID, radius = radius }.
 S.handState = S.handState or {}
 
@@ -134,6 +156,11 @@ function S.onPlayerUpdate(player)
     local item = player:getPrimaryHandItem()
     local radius = S.apply(item)
     local key = player:getPlayerNum() or 0
+    local now = getTimestampMs()
+    if not S.lastPass[key] or now - S.lastPass[key] >= INVENTORY_PASS_MS then
+        S.lastPass[key] = now
+        if player.getInventory then S.applyMain(player:getInventory()) end
+    end
     local last = S.handState[key]
     if radius then
         local id = item:getID()

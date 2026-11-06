@@ -16,7 +16,7 @@ A vision to realize: add an authentic Walther PPK/S to Project Zomboid Build 42 
 
 ## Capabilities
 
-Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12, plus the suppressor polish pass (detach fixes, flat ground model, suppressed shot sound, tooltip, poster).
+Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12, plus the suppressor polish pass (detach fixes, flat ground model, suppressed shot sound, tooltip, poster) and CAP-13 (ankle holster).
 
 - **CAP-1**
   - **intent:** Player can find the PPK/S in civilian loot.
@@ -54,6 +54,9 @@ Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12, plus the suppressor p
 - **CAP-12** (first update)
   - **intent:** Player can rarely find the suppressor in civilian loot.
   - **success:** It spawns only in the civilian lists below, at those weights, and never in SWAT or army storage.
+- **CAP-13** (first update)
+  - **intent:** Player can carry the unsuppressed PPK/S in an ankle holster.
+  - **success:** Unsuppressed, the PPK/S can go in an ankle holster or any normal holster (hip, shoulder). Suppressed, only normal holsters are offered; if the suppressor is attached while the gun is in an ankle holster, the gun leaves the ankle holster and stays in the inventory.
 
 ## Constraints
 
@@ -70,7 +73,8 @@ Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12, plus the suppressor p
 - Suppressor: sound radius 10 while attached; never wears out; can't be crafted; fits the PPK/S only. Its in-game tooltip doesn't mention wear.
 - Suppressor spawn weights are fixed copies of the vanilla x8 scope's, civilian lists only: GunStoreAccessories 6, PawnShopGunsSpecial 6, GunStoreGuns 4, GunStoreRifles 4, GarageFirearms 1, PawnShopGuns 1, FirearmWeapons_Mid 1, FirearmWeapons_Late 1.
 - Suppressor art comes from MihaM's model (same CC BY credit), with the icon rendered from it. The gun model gets a muzzle attachment point.
-- Lua is limited to the suppressor: setting the PPK/S sound radius and shot sound when it is attached or removed, and the detach animation and held-model refresh that the vanilla remove action lacks.
+- Lua is limited to the suppressor: setting the PPK/S sound radius, shot sound and holster type when it is attached or removed, and the detach animation and held-model refresh that the vanilla remove action lacks.
+- Holsters: the PPK/S uses the small-holster type (ankle and normal holsters, like the vanilla short revolver); while suppressed it uses the normal holster type (no ankle holster).
 - Display names live only in translation files. Item IDs never change after release and contain no "/".
 - Ammo is defined separately from the gun so other .380 guns can share it.
 - Vanilla pistol sounds, plus one new sound file: the suppressed shot (`media/sound/suppressed_pistol_shot.ogg`, supplied by the mod author), used only while the suppressor is attached.

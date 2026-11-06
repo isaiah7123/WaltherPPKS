@@ -1,0 +1,15 @@
+/* Walther PPK/S suppressed shot. Played instead of M9Shoot while the suppressor is attached
+   (swapped by lua/shared/WaltherPPKS_Suppressor.lua). Sound file supplied by the mod author. */
+module Base
+{
+    sound WaltherPPKS_ShootSuppressed
+    {
+        category = Item,
+        maxInstancesPerEmitter = 2,
+        clip
+        {
+            file = media/sound/suppressed_pistol_shot.ogg,
+            distanceMax = 1000,
+        }
+    }
+}

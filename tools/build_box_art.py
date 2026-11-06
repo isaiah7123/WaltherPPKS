@@ -169,19 +169,25 @@ def build_icon(game, out_path):
 
 
 def build_listing_images():
-    """Mod-list icon/poster and Workshop preview, composed from the gun and .380 box icons (no new art)."""
+    """Mod-list icon/poster and Workshop preview, composed from the gun, suppressor and .380 box icons
+    (no new art)."""
     gun_p = os.path.join(MOD, "Item_PPKS.png")
+    sup_p = os.path.join(MOD, "Item_PPKSSuppressor.png")
     box_p = os.path.join(MOD, "Item_PPKS380Box.png")
-    if not os.path.exists(gun_p):
+    if not os.path.exists(gun_p) or not os.path.exists(sup_p):
         print("skip listing images: run build_model.py first")
         return
     gun = Image.open(gun_p).convert("RGBA")
+    sup = Image.open(sup_p).convert("RGBA")
     box = Image.open(box_p).convert("RGBA")
     mod42 = os.path.dirname(os.path.dirname(MOD))
     gun.save(os.path.join(mod42, "icon.png"))
     poster = Image.new("RGBA", (256, 256), (46, 48, 44, 255))
-    # gun top-left, box below-right of it, caption in its own strip at the bottom (no overlap)
+    # gun top-left, the detached suppressor under it, box below-right, caption in its own strip at the
+    # bottom (no overlap). Both 32px icons fill their width, so the suppressor is drawn at 4x (128px)
+    # against the gun's 5x (160px): about its real length next to the gun.
     poster.alpha_composite(gun.resize((160, 160), Image.NEAREST), (8, 4))
+    poster.alpha_composite(sup.resize((128, 128), Image.NEAREST), (34, 106))
     poster.alpha_composite(box.resize((80, 80), Image.NEAREST), (168, 124))
     d = ImageDraw.Draw(poster)
     d.text((12, 222), "Walther PPK/S  .380 ACP", font=find_font(18), fill=(235, 230, 220, 255))

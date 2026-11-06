@@ -16,7 +16,7 @@ A vision to realize: add an authentic Walther PPK/S to Project Zomboid Build 42 
 
 ## Capabilities
 
-Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12.
+Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12, plus the suppressor polish pass (detach fixes, flat ground model, suppressed shot sound, tooltip, poster).
 
 - **CAP-1**
   - **intent:** Player can find the PPK/S in civilian loot.
@@ -47,10 +47,10 @@ Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12.
   - **success:** The .380 box shows its own icon in inventory and its own texture on the floor and in hand.
 - **CAP-10** (first update)
   - **intent:** Player can attach and remove a suppressor on the PPK/S.
-  - **success:** It attaches and detaches through the vanilla attachment menu, sits on the muzzle without floating or clipping from any angle, and fits no other gun.
+  - **success:** It attaches and detaches through the vanilla attachment menu, sits on the muzzle without floating or clipping from any angle, and fits no other gun. Removing it plays a character animation and the held gun's model immediately shows it without the suppressor. Dropped or placed on the floor, it lies flat (horizontal), not on end.
 - **CAP-11** (first update)
   - **intent:** Suppressed shots draw fewer zombies.
-  - **success:** Sound radius is 20 while the suppressor is attached and 70 after removal, and stays correct after saving and reloading.
+  - **success:** Sound radius is 10 while the suppressor is attached and 70 after removal, and stays correct after saving and reloading. While attached, each shot plays the suppressed shot sound instead of the M9 shot; after removal the M9 shot returns.
 - **CAP-12** (first update)
   - **intent:** Player can rarely find the suppressor in civilian loot.
   - **success:** It spawns only in the civilian lists below, at those weights, and never in SWAT or army storage.
@@ -67,13 +67,14 @@ Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12.
 - .380 box reuses the vanilla `HandGunAmmoBox` mesh with a new .380 texture and a new icon. .380 rounds and magazine reuse vanilla art (icons `PistolAmmo` and `BerettaClip`, models `9mmRounds` and `Gun_Pistol_Magazine`), as vanilla does for .45.
 - New art in version 1 is limited to the gun model, gun icon, .380 box texture and .380 box icon.
 - The .380 box texture and icon are edited from the vanilla 9mm box art. Under the Project Zomboid Modding Policy, that art stays in a free mod that requires the base game: never sold, never reused outside Project Zomboid, and the mod is never presented as official.
-- Suppressor: sound radius 20 while attached; never wears out; can't be crafted; fits the PPK/S only.
+- Suppressor: sound radius 10 while attached; never wears out; can't be crafted; fits the PPK/S only. Its in-game tooltip doesn't mention wear.
 - Suppressor spawn weights are fixed copies of the vanilla x8 scope's, civilian lists only: GunStoreAccessories 6, PawnShopGunsSpecial 6, GunStoreGuns 4, GunStoreRifles 4, GarageFirearms 1, PawnShopGuns 1, FirearmWeapons_Mid 1, FirearmWeapons_Late 1.
 - Suppressor art comes from MihaM's model (same CC BY credit), with the icon rendered from it. The gun model gets a muzzle attachment point.
-- Lua is limited to changing the PPK/S sound radius when the suppressor is attached or removed.
+- Lua is limited to the suppressor: setting the PPK/S sound radius and shot sound when it is attached or removed, and the detach animation and held-model refresh that the vanilla remove action lacks.
 - Display names live only in translation files. Item IDs never change after release and contain no "/".
 - Ammo is defined separately from the gun so other .380 guns can share it.
-- Vanilla pistol sounds only; no new sound files.
+- Vanilla pistol sounds, plus one new sound file: the suppressed shot (`media/sound/suppressed_pistol_shot.ogg`, supplied by the mod author), used only while the suppressor is attached.
+- Mod-list poster and Workshop preview show the gun with the suppressor detached underneath it, plus the .380 box, composed from the existing icons.
 
 ## Non-goals
 
@@ -81,7 +82,7 @@ Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12.
 - Any attachment in version 1, and any attachment other than the suppressor.
 - Suppressor wear, suppressor crafting, or a suppressor for other guns.
 - Suppressor spawns in SWAT or army storage.
-- Custom sounds.
+- Custom sounds other than the suppressed shot.
 - Any edge besides weight, M1911-level noise and the suppressor.
 - 9mm or .32 ACP chambering.
 - Other .380 guns in version 1.
@@ -91,7 +92,7 @@ Version 1: CAP-1 to CAP-9. First update: CAP-10 to CAP-12.
 ## Success signal
 
 - Version 1: in a new Build 42 game with only this mod enabled, a player finds a PPK/S and .380 ammo in a house, loads 7 rounds, fires using vanilla pistol sounds, sees the correct model in hand, and the console log shows no errors from the mod.
-- First update: a player finds the suppressor in a gun store, attaches it, and clears a house with fewer zombies arriving than without it; removing it restores normal noise.
+- First update: a player finds the suppressor in a gun store, attaches it, hears suppressed shots, and clears a house with fewer zombies arriving than without it; removing it (with an animation) restores the normal look and noise.
 
 ## Assumptions
 

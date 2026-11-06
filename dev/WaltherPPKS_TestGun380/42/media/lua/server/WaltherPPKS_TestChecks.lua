@@ -310,12 +310,53 @@ local function checkSuppressor()
         check(S.apply(gun) == 70 and gun:getSoundRadius() == 70, "bare PPK/S radius " .. gun:getSoundRadius())
         gun:attachWeaponPart(part)
         check(gun:getWeaponPart("Canon") ~= nil, "suppressor not attached")
-        check(S.apply(gun) == 20 and gun:getSoundRadius() == 20, "suppressed radius " .. gun:getSoundRadius())
+        check(S.apply(gun) == 10 and gun:getSoundRadius() == 10, "suppressed radius " .. gun:getSoundRadius())
         gun:detachWeaponPart(part)
         check(gun:getWeaponPart("Canon") == nil, "suppressor not detached")
         check(S.apply(gun) == 70 and gun:getSoundRadius() == 70, "detached radius " .. gun:getSoundRadius())
         local m9 = instanceItem("Base.Pistol")
         check(S.apply(m9) == nil and m9:getSoundRadius() == 100, "radius rule touched the M9: " .. m9:getSoundRadius())
+    end)
+    -- Polish pass: suppressed shot sound swaps with the part, like the radius.
+    try("attach/detach shot sound", function()
+        local gun, part = instanceItem("WaltherPPKS.PPKS"), instanceItem(SUPPRESSOR)
+        check(gun:getSwingSound() == "M9Shoot", "script shot sound " .. tostring(gun:getSwingSound()))
+        check(S.SOUND_NORMAL == "M9Shoot", "normal shot sound constant " .. tostring(S.SOUND_NORMAL))
+        S.apply(gun)
+        check(gun:getSwingSound() == "M9Shoot", "bare PPK/S shot sound " .. tostring(gun:getSwingSound()))
+        gun:attachWeaponPart(part)
+        S.apply(gun)
+        check(gun:getSwingSound() == "WaltherPPKS_ShootSuppressed", "suppressed shot sound " .. tostring(gun:getSwingSound()))
+        gun:detachWeaponPart(part)
+        S.apply(gun)
+        check(gun:getSwingSound() == "M9Shoot", "detached shot sound " .. tostring(gun:getSwingSound()))
+        local m9 = instanceItem("Base.Pistol")
+        m9:attachWeaponPart(instanceItem(SUPPRESSOR))   -- forced; the menu never offers this
+        S.apply(m9)
+        check(m9:getSwingSound() == "M9Shoot", "sound rule touched the M9: " .. tostring(m9:getSwingSound()))
+        local snd = getScriptManager():getGameSound("WaltherPPKS_ShootSuppressed")
+        check(snd ~= nil, "sound script WaltherPPKS_ShootSuppressed missing")
+        -- GameSoundScript/GameSoundClip methods aren't exposed to Lua in 42.21; check the file when they are.
+        local okClip, file = pcall(function() return snd:getRandomClip():getFile() end)
+        if snd and okClip then
+            check(file == "media/sound/suppressed_pistol_shot.ogg", "suppressed clip file " .. tostring(file))
+        elseif snd then
+            print(TAG .. "SKIP suppressed clip file: sound clip API not exposed to Lua")
+        end
+    end)
+    -- Polish pass: the dropped suppressor lies flat (world point turned 90 degrees about Z).
+    try("suppressor ground pose", function()
+        local ms = getScriptManager():getModelScript("WaltherPPKS.PPKSSuppressor_Ground")
+        check(ms ~= nil, "ground model script missing")
+        local w = ms and ms:getAttachmentById("world")
+        check(w ~= nil, "ground model has no world attachment")
+        if w then
+            local r, o = w:getRotate(), w:getOffset()
+            check(near(r:x(), 0) and near(r:y(), 0) and near(r:z(), 90),
+                  "ground rotate " .. r:x() .. " " .. r:y() .. " " .. r:z())
+            check(near(o:x(), 0.0088) and near(o:y(), 0.0514) and near(o:z(), 0),
+                  "ground offset " .. o:x() .. " " .. o:y() .. " " .. o:z())
+        end
     end)
     -- The vanilla attach/detach actions' complete() is wrapped. The original needs a real player, so it is
     -- replaced by a stub for this check; only the wrapper's reapply is exercised.
@@ -343,12 +384,66 @@ local function checkSuppressor()
             S.orig.upgrade = function(self) self.weapon:attachWeaponPart(self.part); return true end
             S.orig.remove = function(self) self.weapon:detachWeaponPart(self.weapon:getWeaponPart(self.partType)); return true end
             ISUpgradeWeapon.complete({ weapon = gun, part = part })
-            check(gun:getSoundRadius() == 20, "radius after attach action " .. gun:getSoundRadius())
+            check(gun:getSoundRadius() == 10, "radius after attach action " .. gun:getSoundRadius())
             ISRemoveWeaponUpgrade.complete({ weapon = gun, partType = "Canon" })
             check(gun:getSoundRadius() == 70, "radius after detach action " .. gun:getSoundRadius())
         end)
         S.orig.upgrade, S.orig.remove = savedUp, savedRm
         check(ok, "wrapper raised: " .. tostring(err))
+    end)
+    -- Bug fix: detaching the suppressor plays an animation and rebuilds the held gun's model.
+    try("detach animation and model refresh", function()
+        check(ISRemoveWeaponUpgrade.start ~= S.orig.removeStart, "ISRemoveWeaponUpgrade.start not wrapped")
+        check(ISRemoveWeaponUpgrade.perform ~= S.orig.removePerform, "ISRemoveWeaponUpgrade.perform not wrapped")
+        local function stubAction(weapon)
+            local a = { weapon = weapon, partType = "Canon", anim = nil, hands = nil }
+            function a:setActionAnim(name) self.anim = name end
+            function a:setOverrideHandModels(p, s) self.hands = { p, s } end
+            return a
+        end
+        local gun, part = instanceItem("WaltherPPKS.PPKS"), instanceItem(SUPPRESSOR)
+        gun:attachWeaponPart(part)
+        local a = stubAction(gun)
+        ISRemoveWeaponUpgrade.start(a)
+        check(a.anim == "Craft", "detach anim " .. tostring(a.anim))
+        check(a.hands and a.hands[1] == gun and a.hands[2] == part, "detach hand models not set")
+        -- another gun's part: no animation added (vanilla behaviour kept)
+        local m9 = instanceItem("Base.Pistol")
+        local b = stubAction(m9)
+        ISRemoveWeaponUpgrade.start(b)
+        check(b.anim == nil, "detach anim added to a non-PPK/S gun")
+        -- perform() rebuilds the hand models on a client
+        local resets = 0
+        local chr = { resetEquippedHandsModels = function() resets = resets + 1 end }
+        local savedPerform, savedHas = S.orig.removePerform, S.hasHandModels
+        local ok, err = pcall(function()
+            S.orig.removePerform = function() end
+            S.hasHandModels = function() return true end
+            ISRemoveWeaponUpgrade.perform({ weapon = gun, character = chr })
+            check(resets == 1, "perform reset count " .. resets)
+            ISRemoveWeaponUpgrade.perform({ weapon = m9, character = chr })
+            check(resets == 1, "perform reset models for a non-PPK/S gun")
+            -- player update: the held gun's suppressor state changes (multiplayer sync) -> one reset
+            local held = instanceItem("WaltherPPKS.PPKS")
+            held:attachWeaponPart(instanceItem(SUPPRESSOR))
+            local pr = 0
+            local player = { getPrimaryHandItem = function() return held end, getPlayerNum = function() return 9 end,
+                             resetEquippedHandsModels = function() pr = pr + 1 end }
+            S.onPlayerUpdate(player)
+            S.onPlayerUpdate(player)
+            check(pr == 0, "player update reset models without a change: " .. pr)
+            held:detachWeaponPart(held:getWeaponPart("Canon"))
+            S.onPlayerUpdate(player)
+            check(pr == 1, "player update reset count after detach " .. pr)
+            check(held:getSoundRadius() == 70, "radius after synced detach " .. held:getSoundRadius())
+            check(held:getSwingSound() == "M9Shoot", "sound after synced detach " .. tostring(held:getSwingSound()))
+            S.onPlayerUpdate(player)
+            check(pr == 1, "player update reset models twice for one detach")
+        end)
+        S.orig.removePerform, S.hasHandModels = savedPerform, savedHas
+        S.handState[9] = nil
+        check(ok, "detach fix raised: " .. tostring(err))
+        check(S.hasHandModels() == false, "dedicated server reports hand models")
     end)
     -- Matrix row "Save/reload": the radius is not saved, so a loaded gun has 70 until reapplied.
     try("reload reapply", function()
@@ -357,7 +452,8 @@ local function checkSuppressor()
         S.apply(gun)
         gun:setSoundRadius(70)   -- what loading does
         triggerEvent("OnEquipPrimary", nil, gun)
-        check(gun:getSoundRadius() == 20, "radius after equipping a loaded suppressed gun " .. gun:getSoundRadius())
+        check(gun:getSoundRadius() == 10, "radius after equipping a loaded suppressed gun " .. gun:getSoundRadius())
+        check(gun:getSwingSound() == "WaltherPPKS_ShootSuppressed", "sound after equipping a loaded suppressed gun")
         -- game-start bag walk: duffel bag > satchel > suppressed PPK/S
         local duffel, satchel = instanceItem("Base.Bag_DuffelBag"), instanceItem("Base.Bag_Satchel")
         local bagged = instanceItem("WaltherPPKS.PPKS")
@@ -366,14 +462,15 @@ local function checkSuppressor()
         satchel:getInventory():AddItem(bagged)
         duffel:getInventory():AddItem(satchel)
         S.applyAll(duffel:getInventory())
-        check(bagged:getSoundRadius() == 20, "radius after bag walk " .. bagged:getSoundRadius())
+        check(bagged:getSoundRadius() == 10, "radius after bag walk " .. bagged:getSoundRadius())
         -- per-update path (multiplayer client): gun in hand, reset to 70
         local held = instanceItem("WaltherPPKS.PPKS")
         held:attachWeaponPart(instanceItem(SUPPRESSOR))
         held:setSoundRadius(70)
         check(S.onPlayerUpdate ~= nil, "S.onPlayerUpdate missing")
-        S.onPlayerUpdate({ getPrimaryHandItem = function() return held end })
-        check(held:getSoundRadius() == 20, "radius after player update " .. held:getSoundRadius())
+        S.onPlayerUpdate({ getPrimaryHandItem = function() return held end, getPlayerNum = function() return 7 end })
+        check(held:getSoundRadius() == 10, "radius after player update " .. held:getSoundRadius())
+        S.handState[7] = nil
         -- the dedicated server has no players: onGameStart must not throw
         local ok, err = pcall(S.onGameStart)
         check(ok, "onGameStart raised: " .. tostring(err))

@@ -1,6 +1,7 @@
 /* Walther PPK/S suppressor (first update). Barrel part for the PPK/S only; no tool needed to attach or
    detach (no CanAttach/CanDetach), never wears out, can't be crafted. The sound radius change
-   (20 attached, 70 detached) is done by lua/shared/WaltherPPKS_Suppressor.lua.
+   (10 attached, 70 detached) and the suppressed shot sound (WaltherPPKS_sounds.txt) are set by
+   lua/shared/WaltherPPKS_Suppressor.lua.
    Model: suppressor from "Walther PPK" by MihaM (Sketchfab), CC BY 4.0; built by tools/build_model.py,
    shares the gun texture. */
 module WaltherPPKS
@@ -38,8 +39,9 @@ module WaltherPPKS
         }
     }
 
-    /* On the floor: same mesh, centred lengthwise (length 0.1028, radius 0.0088 printed by the build
-       script); x lifts it by its radius the way the gun's world x lifts the gun by half its width. */
+    /* On the floor: same mesh, lying flat. The mesh runs along +Y, which is "up" for a ground item, so
+       the world point is turned 90 degrees about Z (as vanilla Handgun_Light_Ground does) to lay it on
+       its side; y centres it lengthwise (length 0.1028), x = +radius (0.0088) rests it on the floor. */
     model PPKSSuppressor_Ground
     {
         mesh = weapons/PPKS_Suppressor,
@@ -47,8 +49,8 @@ module WaltherPPKS
 
         attachment world
         {
-            offset = -0.0088 0.0514 0.0,
-            rotate = 0.0 0.0 0.0,
+            offset = 0.0088 0.0514 0.0,
+            rotate = 0.0 0.0 90.0,
         }
     }
 }

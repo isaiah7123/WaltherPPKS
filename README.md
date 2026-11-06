@@ -6,9 +6,9 @@ The civilian concealed-carry pistol a 1993 Kentucky household would own, with it
 
 ## What it adds
 
-- **Walther PPK/S** (.380 ACP, 7-round magazine). Damage 0.6–1.0, the same as the M9, but with a shorter range (10), fewer rounds (7 vs 15), lighter weight (1.0 vs 1.5) and M1911-level noise (radius 70). Everything else follows the vanilla M9. Vanilla pistol sounds.
+- **Walther PPK/S** (.380 ACP, 7-round magazine). Damage 0.6–1.0, the same as the M9, but with a shorter range (10), fewer rounds (7 vs 15), lighter weight (1.0 vs 1.5) and M1911-level noise (radius 70). Everything else follows the vanilla M9. Vanilla unsuppressed pistol sounds and custom suppressed shot sound.
 - **.380 ACP rounds, boxes of 50** (with their own green box art) and **PPK/S magazines**. Open a box into 50 rounds, or pack 50 rounds into a box. No carton.
-- **Walther PPK/S Suppressor** (first update). A rare barrel attachment for the PPK/S only: attach and remove it through the vanilla attachment menu, no tool needed. While it's on, the gun's sound radius drops from 70 to 20, making the PPK/S the one quiet gun in Build 42. It never wears out and can't be crafted. This is the mod's one deliberate departure from realism.
+- **Walther PPK/S Suppressor** A rare barrel attachment for the PPK/S only: attach and remove it through the vanilla attachment menu, no tool needed. While it's on, each shot plays a suppressed shot sound and the gun's sound radius drops from 70 to 10. It never wears out and can't be crafted.
 
 ## Loot
 
@@ -52,7 +52,8 @@ To play-test in the game, link `workshop/WaltherPPKS` into `~/Zomboid/Workshop/`
 
 - **Gun and suppressor models:** "Walther PPK" by MihaM ([Sketchfab](https://sketchfab.com/3d-models/walther-ppk-8595399f2c9141f4afeb8d138856a470)), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Changes for this mod: suppressor split off into its own model, polygon count reduced, textures resized and re-baked for Project Zomboid, icons rendered from the models.
 - **Box art:** the .380 box texture and icon are edited from Project Zomboid's 9mm box art, used under the Project Zomboid Modding Policy.
-- **Vanilla art and sounds:** rounds, magazine and sounds reuse vanilla art and audio.
+- **Vanilla art and sounds:** rounds, magazine and sounds reuse vanilla art and audio, except the suppressed shot.
+- **Suppressed shot sound:** `suppressed_pistol_shot.ogg`, supplied by the mod author.
 
 This is a free fan mod that requires Project Zomboid. It is not official and not affiliated with The Indie Stone or Walther. See [CREDITS.md](CREDITS.md).
 

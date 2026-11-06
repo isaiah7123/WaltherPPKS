@@ -18,4 +18,4 @@ this art stays in this free mod that requires the base game, is never sold, neve
 Project Zomboid, and the mod is not official or affiliated with The Indie Stone or Walther.
 
 .380 rounds and magazine reuse vanilla art (`PistolAmmo`/`9mmRounds`, `BerettaClip`/`GunMagazine`/`Gun_Pistol_Magazine`).
-Sounds are vanilla M9 sounds.
+Sounds are vanilla M9 sounds, except the suppressed shot (`media/sound/suppressed_pistol_shot.ogg`), supplied by the mod author.
